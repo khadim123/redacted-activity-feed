@@ -56,6 +56,49 @@ describe("POST /events", () => {
     expect(list.body.events).toHaveLength(1);
   });
 
+  it("deduplicates within a single batch too", async () => {
+    const response = await request(app)
+      .post("/events")
+      .set("X-Org-Id", "org_acme")
+      .send({ events: [event(), event()] })
+      .expect(201);
+
+    expect(response.body).toMatchObject({ received: 2, accepted: 1, duplicates: 1 });
+  });
+
+  it("scopes duplicate ids per organisation", async () => {
+    await request(app)
+      .post("/events")
+      .set("X-Org-Id", "org_acme")
+      .send({ events: [event({ id: "evt_shared" })] })
+      .expect(201);
+
+    const globex = await request(app)
+      .post("/events")
+      .set("X-Org-Id", "org_globex")
+      .send({ events: [event({ id: "evt_shared", org_id: "org_globex" })] })
+      .expect(201);
+    expect(globex.body.accepted).toBe(1);
+
+    const acmeList = await request(app).get("/events").set("X-Org-Id", "org_acme");
+    const globexList = await request(app).get("/events").set("X-Org-Id", "org_globex");
+    expect(acmeList.body.events).toHaveLength(1);
+    expect(globexList.body.events).toHaveLength(1);
+    expect(acmeList.body.events[0].org_id).toBe("org_acme");
+    expect(globexList.body.events[0].org_id).toBe("org_globex");
+  });
+
+  it("returns a JSON error for a malformed request body", async () => {
+    const response = await request(app)
+      .post("/events")
+      .set("X-Org-Id", "org_acme")
+      .set("Content-Type", "application/json")
+      .send('{"events": [')
+      .expect(400);
+
+    expect(response.body.error).toBe("Invalid JSON body");
+  });
+
   it("rejects malformed events with the index and the broken field", async () => {
     const malformed: Record<string, unknown> = { ...event({ id: "evt_2" }), ts: "not-a-date" };
     delete malformed.org_id;

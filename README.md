@@ -1,5 +1,7 @@
 # Redacted activity feed
 
+![CI](https://github.com/khadim123/redacted-activity-feed/actions/workflows/ci.yml/badge.svg)
+
 A small TypeScript/Node service that ingests activity events, removes personal
 data **before** storage, and serves a per-organisation feed with a minimal UI.
 
@@ -10,6 +12,8 @@ npm install
 npm start          # http://localhost:3000, seeds data/sample-events.json
 npm test           # redaction + API tests
 npm run typecheck
+npm run build      # compile to dist/
+npm run start:prod # run the compiled server
 ```
 
 `SEED=false npm start` starts with an empty store. The page defaults to
@@ -39,7 +43,7 @@ Returns `{ events, nextCursor }`, newest first, redacted only.
 
 **Redaction runs on write, not on read.** `EventStore.insert` calls
 `redactWithCount` and stores only the redacted text. There is no unredacted
-copy in memory or on disk to leak through a later query or log.
+stored copy in memory or on disk to leak through a later query or log.
 
 **Redaction is a pure function with ordered rules.** `redact(label, text)` lives
 in `src/redact.ts` and has no I/O. Order is deliberate: emails and tokens first,
@@ -68,8 +72,25 @@ that data is lost on restart and the store is per-process.
 while new events are written; offset pagination would duplicate or skip rows.
 `ts` is normalised to UTC ISO on ingest so string ordering is chronological.
 
-**Duplicates are ignored by event id**, within a batch and across batches. The
-response reports how many were skipped. The first version wins.
+**Duplicates are ignored by event id within an organisation**, within a batch
+and across batches. The response reports how many were skipped, and the first
+version wins. The store key is `org_id + id`, so one tenant cannot probe
+another tenant's ids through the duplicate counter.
+
+**Errors are always JSON.** Malformed JSON and oversized bodies go through one
+error handler, so a client can rely on `{ error }` instead of parsing Express's
+HTML error page.
+
+## CI
+
+`.github/workflows/ci.yml` runs on every push and pull request:
+
+1. `npm ci`, `npm run typecheck`, `npm test`, `npm run build`
+2. boots the compiled server and smoke-tests `/health` and `GET /events`
+3. builds the Docker image and smoke-tests the running container
+
+There is no deploy target in this exercise; the container job is the delivery
+artifact and a deploy step can be appended once a host exists.
 
 ## What I cut
 

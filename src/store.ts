@@ -37,16 +37,23 @@ function decodeCursor(cursor: string): { ts: string; id: string } | null {
 export class EventStore {
   private readonly events = new Map<string, StoredEvent>();
 
+  private key(event: Pick<RawEvent, "org_id" | "id">): string {
+    // Event ids are only unique within a tenant; keying globally would let one
+    // org probe another's ids through the duplicate counter.
+    return `${event.org_id}::${event.id}`;
+  }
+
   get size(): number {
     return this.events.size;
   }
 
   insert(event: RawEvent): InsertResult {
-    if (this.events.has(event.id)) {
+    const key = this.key(event);
+    if (this.events.has(key)) {
       return { status: "duplicate", redactions: 0 };
     }
     const { text, count } = redactWithCount(event.label, event.text);
-    this.events.set(event.id, { ...event, text, redactions: count });
+    this.events.set(key, { ...event, text, redactions: count });
     return { status: "inserted", redactions: count };
   }
 

@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Typecheck, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+      - name: Smoke test the compiled server
+        run: |
+          node dist/server.js &
+          SERVER_PID=$!
+          trap 'kill $SERVER_PID' EXIT
+          for i in {1..20}; do
+            curl -fsS http://localhost:3000/health && break
+            sleep 0.5
+          done
+          curl -fsS -H "X-Org-Id: org_acme" "http://localhost:3000/events?limit=2" > /dev/null
+
+  container:
+    name: Build and run container
+    runs-on: ubuntu-latest
+    needs: verify
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t redacted-activity-feed:${{ github.sha }} .
+
+      - name: Smoke test the container
+        run: |
+          docker run -d --rm --name feed -p 3000:3000 redacted-activity-feed:${{ github.sha }}
+          trap 'docker stop feed' EXIT
+          for i in {1..30}; do
+            curl -fsS http://localhost:3000/health && break
+            sleep 0.5
+          done
+          curl -fsS -H "X-Org-Id: org_acme" "http://localhost:3000/events?limit=2" > /dev/null
