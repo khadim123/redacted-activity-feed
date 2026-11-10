@@ -2,7 +2,7 @@
 
 ## Tools
 
-- **OpenCode** (agentic coding CLI) running a hosted model, used as a pair
+- **OpenCode** (agentic coding CLI) running a hosted DeepSeek model, used as a pair
   programmer in the editor: scaffolding, writing code, running tests, and
   reviewing failures.
 - No autocomplete-only tool was used for the redaction logic; the rules were
