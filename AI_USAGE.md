@@ -26,9 +26,11 @@
   match part of a longer numeric id. I constrained it to 13–19 digits with
   boundaries and kept the Luhn gate as the final decision, so order and invoice
   numbers survive.
-- **Tenant check.** The first API draft trusted `org_id` from the request body.
-  I overrode that: the header is the identity, and a body `org_id` that
-  disagrees is a `403`.
+- **Tenant check.** The first API draft required `X-Org-Id` on POST as well as
+  GET, which rejected the supplied sample batch because it spans two orgs. I
+  kept the header authoritative for reads and for POST when present, but allowed
+  POST to use each event's `org_id` otherwise. A header/body mismatch is still a
+  `403`.
 - **Redaction timing.** I rejected a read-time redaction approach; redacting on
   insert is the only way to guarantee no raw value is stored.
 - **Sensitive labels.** I narrowed the list to labels that name a field

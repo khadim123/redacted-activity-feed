@@ -123,8 +123,21 @@ describe("POST /events", () => {
     expect(response.body.error).toContain("different organisation");
   });
 
-  it("requires the X-Org-Id header", async () => {
-    await request(app).post("/events").send({ events: [event()] }).expect(401);
+  it("accepts a POST batch without the header, using each event's org_id", async () => {
+    await request(app)
+      .post("/events")
+      .send({
+        events: [
+          event({ id: "evt_acme" }),
+          event({ id: "evt_globex", org_id: "org_globex" }),
+        ],
+      })
+      .expect(201);
+
+    const acme = await request(app).get("/events").set("X-Org-Id", "org_acme").expect(200);
+    const globex = await request(app).get("/events").set("X-Org-Id", "org_globex").expect(200);
+    expect(acme.body.events.map((e: RawEvent) => e.id)).toEqual(["evt_acme"]);
+    expect(globex.body.events.map((e: RawEvent) => e.id)).toEqual(["evt_globex"]);
   });
 });
 
@@ -203,7 +216,7 @@ describe("GET /events", () => {
     expect(response.body.error).toBe("Invalid cursor");
   });
 
-  it("requires the X-Org-Id header", async () => {
+  it("requires the X-Org-Id header on reads", async () => {
     await request(app).get("/events").expect(401);
   });
 });

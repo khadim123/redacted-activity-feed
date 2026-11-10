@@ -22,8 +22,8 @@ tenant's events.
 
 ## API
 
-`POST /events` — header `X-Org-Id` required. Body is an array or
-`{ "events": [...] }`.
+`POST /events` — body is an array or `{ "events": [...] }`. `X-Org-Id` is
+optional; when present it is enforced, otherwise each event's `org_id` is used.
 
 ```bash
 curl -X POST http://localhost:3000/events \
@@ -33,8 +33,8 @@ curl -X POST http://localhost:3000/events \
 ```
 
 Returns `201 { received, accepted, duplicates, redactions }`. Malformed events
-return `400` with the failing index and field; an event whose `org_id` differs
-from `X-Org-Id` returns `403`; a missing header returns `401`.
+return `400` with the failing index and field; if `X-Org-Id` is supplied and an
+event's `org_id` differs from it, the request returns `403`.
 
 `GET /events?limit=20&cursor=...&app=Slack` — header `X-Org-Id` required.
 Returns `{ events, nextCursor }`, newest first, redacted only.
@@ -58,10 +58,11 @@ pattern, which keeps short numeric references from being swallowed.
 no safe substring — the value becomes `⟦PII⟧` regardless of what it looks like.
 Label matching ignores case, spaces, and punctuation (`full_name`, `Account No.`).
 
-**The org comes from the header, never the body.** `X-Org-Id` is treated as the
-authenticated identity. `POST` rejects events whose body `org_id` disagrees with
-it, and `GET` filters on it, so one organisation cannot read or write another's
-events.
+**Reads derive the org from the header, never the body.** `GET /events` treats
+`X-Org-Id` as the authenticated identity and filters on it, so one organisation
+cannot read another's events. `POST` accepts the per-event `org_id` the brief
+supplies (the sample batch spans two orgs); if the header is also supplied it is
+authoritative and a mismatch is rejected with `403`.
 
 **In-memory storage.** The brief allows it and it keeps the service dependency-
 free and the tests deterministic. Redaction happens before the `Map` write, so

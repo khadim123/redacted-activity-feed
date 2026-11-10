@@ -26,22 +26,24 @@ export function createApp(store: EventStore): express.Express {
   });
 
   app.post("/events", (req, res) => {
-    const orgId = orgFrom(req, res);
-    if (!orgId) return;
-
     const parsed = validateBatch(req.body);
     if (!parsed.ok) {
       res.status(400).json({ error: parsed.error });
       return;
     }
 
-    // The header is the authenticated identity; a body org_id may never override it.
-    const foreign = parsed.events.find((event) => event.org_id !== orgId);
-    if (foreign) {
-      res.status(403).json({
-        error: `Event ${foreign.id} belongs to a different organisation than X-Org-Id`,
-      });
-      return;
+    // The brief supplies org_id per event and only mandates the header for
+    // reads. When the header is present it is authoritative; a mismatch is a
+    // cross-tenant write and gets rejected.
+    const headerOrg = req.header("x-org-id");
+    if (headerOrg) {
+      const foreign = parsed.events.find((event) => event.org_id !== headerOrg);
+      if (foreign) {
+        res.status(403).json({
+          error: `Event ${foreign.id} belongs to a different organisation than X-Org-Id`,
+        });
+        return;
+      }
     }
 
     let accepted = 0;
