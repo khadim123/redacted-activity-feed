@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redacted activity feed</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main>
+      <header class="top">
+        <div>
+          <h1>Activity feed</h1>
+          <p class="sub">Personal data is removed before an event is stored.</p>
+        </div>
+        <div class="org">
+          <label for="org">Organisation</label>
+          <input id="org" value="org_acme" autocomplete="off" />
+        </div>
+      </header>
+
+      <section class="toolbar" aria-label="Filters">
+        <div class="field">
+          <label for="app">App</label>
+          <select id="app">
+            <option value="">All apps</option>
+          </select>
+        </div>
+        <div class="stats" aria-live="polite">
+          <span id="count" class="pill">0 events</span>
+          <span id="redactions" class="pill accent">0 values redacted</span>
+        </div>
+      </section>
+
+      <p id="status" class="status" role="status"></p>
+      <ol id="feed" class="feed"></ol>
+    </main>
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

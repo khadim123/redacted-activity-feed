@@ -1,0 +1,13 @@
+[
+  {"id":"evt_001","org_id":"org_acme","user_id":"u_17","app":"Salesforce","ts":"2026-11-02T09:01:12Z","label":"Email","text":"priya.sharma@acme-example.com"},
+  {"id":"evt_002","org_id":"org_acme","user_id":"u_17","app":"Salesforce","ts":"2026-11-02T09:01:40Z","label":"Full name","text":"Priya Sharma"},
+  {"id":"evt_003","org_id":"org_acme","user_id":"u_17","app":"Stripe Dashboard","ts":"2026-11-02T09:03:05Z","label":"Card","text":"Customer paid with 4111 1111 1111 1111 yesterday"},
+  {"id":"evt_004","org_id":"org_acme","user_id":"u_17","app":"NetSuite","ts":"2026-11-02T09:04:51Z","label":"Order","text":"Order 5432 1098 7654 3210 shipped"},
+  {"id":"evt_005","org_id":"org_acme","user_id":"u_22","app":"NetSuite","ts":"2026-11-02T09:06:30Z","label":"Reference","text":"Invoice INV-2026-000417 approved"},
+  {"id":"evt_006","org_id":"org_acme","user_id":"u_22","app":"Slack","ts":"2026-11-02T09:07:02Z","label":"Message","text":"call me on +91 98450 12345 about the renewal"},
+  {"id":"evt_007","org_id":"org_globex","user_id":"u_05","app":"Terminal","ts":"2026-11-02T09:08:44Z","label":"Command","text":"export API_KEY=rk_demo_8f3a9c2e7b6d5a4f3e2d1c0b9a8f7e6d"},
+  {"id":"evt_008","org_id":"org_globex","user_id":"u_05","app":"Postman","ts":"2026-11-02T09:09:10Z","label":"Header","text":"Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1XzA1In0.c2lnbmF0dXJlLWRlbW8"},
+  {"id":"evt_009","org_id":"org_globex","user_id":"u_05","app":"Workday","ts":"2026-11-02T09:10:00Z","label":"Date of birth","text":"14/03/1991"},
+  {"id":"evt_003","org_id":"org_acme","user_id":"u_17","app":"Stripe Dashboard","ts":"2026-11-02T09:03:05Z","label":"Card","text":"Customer paid with 4111 1111 1111 1111 yesterday"},
+  {"id":"evt_010","user_id":"u_99","app":"Excel","ts":"not-a-date","label":"Cell","text":"Q3 totals"}
+]
